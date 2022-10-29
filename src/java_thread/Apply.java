@@ -55,6 +55,7 @@ public class Apply {
 
                     }else if(identified_client !=i && i==Client.getListe_cliente_official().size()-1){
                         System.err.println("Identifiant non trouvé !");
+                        System.exit(0);
                     }
                 }
                 System.out.println("Bienvenue "+ nom_client + " !");
@@ -80,7 +81,14 @@ public class Apply {
                         numeros_destinataires.add(num_a_inserer);
                     }
                 }
-                Client.getListe_cliente_official().get(indice_client).connexion_server(6942);//C'est notre client on le fait connecter au serveur
+                int[] numeros_destinataires_int =new int[numeros_destinataires.size()];
+                for (int i=0;i<numeros_destinataires.size();i++){
+                    numeros_destinataires_int[i]= Integer.parseInt(numeros_destinataires.get(i));
+                    System.out.println(numeros_destinataires_int[i]);
+
+                }
+
+                //Client.getListe_cliente_official().get(indice_client).connexion_server(6942);//C'est notre client on le fait connecter au serveur
                 /*while (numeros_clients.charAt(indice_chaine_numero_client)!='\0'){
                     if(numeros_clients.charAt(indice_chaine_numero_client)==' '){
 
