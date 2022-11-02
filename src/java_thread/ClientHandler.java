@@ -16,6 +16,7 @@ public class ClientHandler implements Runnable {
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWritter;
 	private String clientUsername;
+	//private int id_client;
 	
 	public ClientHandler(Socket socket) {
 		try {
@@ -23,8 +24,9 @@ public class ClientHandler implements Runnable {
 			this.bufferedWritter=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.clientUsername=bufferedReader.readLine();
+			//this.id_client= bufferedReader.readLine();
 			clientHandlers.add(this);
-			broadcastMessage("Serveur : "+clientUsername+" est apparu dans la messagerie !");
+			broadcastMessage("Serveur : "+clientUsername+ " est apparu dans la messagerie !");
 		
 		}catch(IOException e) {
 			closeEverything(socket, bufferedReader,bufferedWritter);
@@ -40,6 +42,7 @@ public class ClientHandler implements Runnable {
 			try {
 				messageFromClient=bufferedReader.readLine();
 				broadcastMessage(messageFromClient);
+				//Intervention pour envoyer message au client.
 				
 				
 			}catch(IOException e) {
@@ -65,6 +68,15 @@ public class ClientHandler implements Runnable {
 			}
 		}
 	}
+	
+	public void message_a_un_client(String messageTosend,String username) {
+		for(ClientHandler clientHandler:clientHandlers) {
+			if(clientHandler.clientUsername.equals(username)) {
+				
+			}
+		}
+	}
+	
 	
 	public void removeClientHandler() {
 		clientHandlers.remove(this);

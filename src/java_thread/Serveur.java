@@ -1,5 +1,4 @@
 package java_thread;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -7,7 +6,6 @@ import java.net.Socket;
 public class Serveur  {
 	
 	private ServerSocket serverSocket;
-	
 	
 	public Serveur(ServerSocket serverSocket) {
 		this.serverSocket=serverSocket;
@@ -21,8 +19,6 @@ public class Serveur  {
 				ClientHandler clientHandler=new ClientHandler(socket);
 				Thread thread =new Thread(clientHandler);
 				thread.start();
-				
-				
 			}
 		}catch(IOException e) {
 			e.getMessage();
@@ -40,11 +36,8 @@ public class Serveur  {
 	}
 	
 	public static void main(String[] args) throws IOException{
-		ServerSocket serverSocket=new ServerSocket(1235);
+		ServerSocket serverSocket=new ServerSocket(1234);
 		Serveur server=new Serveur(serverSocket);
 		server.startServer();
-		
 	}
-	
-	
 }

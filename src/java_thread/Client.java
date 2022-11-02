@@ -14,6 +14,7 @@ public class Client{
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWriter;
 	private String username;
+	private int id_client;
 	
 	public Client(Socket socket,String username) {
 		try{
@@ -21,6 +22,7 @@ public class Client{
 			this.bufferedWriter=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.username=username;
+			//this.id_client=id_client;
 		}catch(IOException e) {
 			closeEverything(socket,bufferedReader,bufferedWriter);
 		}
@@ -35,8 +37,8 @@ public class Client{
 			Scanner scanner=new Scanner(System.in);
 			
 			while(socket.isConnected()) {
-				String messageToSend=scanner.nextLine();
-				bufferedWriter.write(username+": "+messageToSend);
+				String messageToSend=scanner.nextLine();//Ce que le client va écrire dans le chat
+				bufferedWriter.write(username+ " a écrit : " +messageToSend);
 				bufferedWriter.newLine();
 				bufferedWriter.flush();
 			}
@@ -84,93 +86,26 @@ public class Client{
 		}
 	}
 	
+	public int getId_client() {
+		return id_client;
+	}
+
+	public void setId_client(int id_client) {
+		this.id_client = id_client;
+	}
+
 	public static void main(String[] args) throws IOException{
+		int id_client=0;
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Bonjour, cher client !");
+		System.out.println("Bienvenue sur l'application client-serveur officiel !\nVeuillez entrer votre pseudo !");
 		String username=sc.nextLine();
 		Socket socket=new Socket("localhost",1234);
 		Client client=new Client(socket,username);
 		client.listenForMessage();
 		client.sendMessage();
+		id_client++;
 	}
 
-	
-	
-	
-	
-	/*
-    private static String pseudo;
-    private String threadName;
-    private static int id_customer;
-    private InetAddress ip_adress;
-
-    private Socket socketClient;
-    
-    private static ArrayList<Client> liste_cliente_official=new ArrayList<Client>();
-
-    public Client(String pseudo, int id_customer,String threadName,Socket socket) throws UnknownHostException {
-        Client.pseudo = pseudo;
-        Client.id_customer = id_customer;
-        this.ip_adress=InetAddress.getLocalHost();
-        this.threadName=threadName;
-
-        //this.socketClient = socketClient;
-
-    }
-
-    public static String getPseudo() {
-        return pseudo;
-    }
-
-    public static int getId_customer() {
-        return id_customer;
-    }
-
-    public static void setPseudo(String pseudo) {
-        Client.pseudo = pseudo;
-    }
-
-    public void setIp_adress(InetAddress ip_adress) {
-        this.ip_adress = ip_adress;
-    }
-
-    
-
-    public static String customers_list(){ //Dans cette méthode on veut afficher la liste de tous les pseudos sauvegardés ainsi que les id_customers.
-        String list_customer="";
-        for(int i=0;i<liste_cliente_official.size();i++){
-            list_customer=list_customer+"Pseudo client :"+liste_cliente_official.get(i).getPseudo()+"  "+"Identifiant client : "+ liste_cliente_official.get(i).getId_customer()+"\n";
-        }
-        return list_customer;
-    }
-
-    public static ArrayList<Client> getListe_cliente_official() {
-        return liste_cliente_official;
-    }
-
-    public static void setListe_cliente_official(ArrayList<Client> liste_cliente_official) {
-        Client.liste_cliente_official = liste_cliente_official;
-    }
-
-	
-
-	public  String getThreadName() {
-		return this.threadName;
-	}
-
-	public void setThreadName(String threadName) {
-		this.threadName = threadName;
-	}
-	
-	@Override
-	public void run() {
-		
-		
-	}
-	*/
-	
-	
-	
 }
 
 
