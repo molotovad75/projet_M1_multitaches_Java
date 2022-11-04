@@ -15,16 +15,21 @@ public class ClientHandler implements Runnable {
 	private Socket socket;
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWritter;
+
+	//Message privées pour un autre client.=
+
 	private String clientUsername;
 	//private int id_client;
-	
+
 	public ClientHandler(Socket socket) {
 		try {
 			this.socket=socket;
+
 			this.bufferedWritter=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.clientUsername=bufferedReader.readLine();
 			//this.id_client= bufferedReader.readLine();
+
 			clientHandlers.add(this);
 			broadcastMessage("Serveur : "+clientUsername+ " est apparu dans la messagerie !");
 		
@@ -37,13 +42,21 @@ public class ClientHandler implements Runnable {
 	@Override
 	public void run() {
 		String messageFromClient;
-		
+		//String nom_client_DM;
 		while(socket.isConnected()) {
 			try {
 				messageFromClient=bufferedReader.readLine();
+				//nom_client_DM=bufferedReader.readLine();
 				broadcastMessage(messageFromClient);
+				//broadcastMessage_client_DM(messageFromClient,nom_client_DM);
+
 				//Intervention pour envoyer message au client.
-				
+				/*if(nom_client_DM.charAt(0)=='@'){
+					broadcastMessage_client_DM(messageFromClient,nom_client_DM);
+				}else if(nom_client_DM.equals("") || nom_client_DM.equals(null)){
+					broadcastMessage(messageFromClient);
+				}*/
+
 				
 			}catch(IOException e) {
 				closeEverything(socket,bufferedReader,bufferedWritter);
@@ -69,10 +82,17 @@ public class ClientHandler implements Runnable {
 		}
 	}
 	
-	public void message_a_un_client(String messageTosend,String username) {
+	public void broadcastMessage_client_DM(String messageTosend,String username) {
 		for(ClientHandler clientHandler:clientHandlers) {
-			if(clientHandler.clientUsername.equals(username)) {
-				
+			if(clientHandler.clientUsername.equals(username) && !clientHandler.clientUsername.equals(clientUsername)) {
+				try{
+					clientHandler.bufferedWritter.write(messageTosend);
+					clientHandler.bufferedWritter.newLine();
+					clientHandler.bufferedWritter.flush();
+				}catch (IOException e){
+					closeEverything(socket,bufferedReader,bufferedWritter);
+				}
+
 			}
 		}
 	}
@@ -102,6 +122,10 @@ public class ClientHandler implements Runnable {
 			e.printStackTrace();
 		}
 		
+	}
+
+	public String getClientUsername() {
+		return clientUsername;
 	}
 	
 }
