@@ -42,20 +42,18 @@ public class ClientHandler implements Runnable {
 	@Override
 	public void run() {
 		String messageFromClient;
-		//String nom_client_DM;
+		String nom_client_DM;
 		while(socket.isConnected()) {
 			try {
 				messageFromClient=bufferedReader.readLine();
-				//nom_client_DM=bufferedReader.readLine();
-				broadcastMessage(messageFromClient);
-				//broadcastMessage_client_DM(messageFromClient,nom_client_DM);
-
-				//Intervention pour envoyer message au client.
-				/*if(nom_client_DM.charAt(0)=='@'){
-					broadcastMessage_client_DM(messageFromClient,nom_client_DM);
-				}else if(nom_client_DM.equals("") || nom_client_DM.equals(null)){
+				nom_client_DM=bufferedReader.readLine();
+				
+				if(Client.get_envoi_DM_privee()==false) {
 					broadcastMessage(messageFromClient);
-				}*/
+				}else if(Client.get_envoi_DM_privee()==true) {
+					//broadcastMessage_client_DM(Client.get_message_to_send_DM(),Client.get_client_name_sending_DM());
+					broadcastMessage_client_DM(messageFromClient,nom_client_DM);
+				}
 
 				
 			}catch(IOException e) {
@@ -71,7 +69,7 @@ public class ClientHandler implements Runnable {
 	public void broadcastMessage(String messageToSend) {
 		for(ClientHandler clientHandler:clientHandlers) {
 			try {
-				if(!clientHandler.clientUsername.equals(clientUsername)) {
+				if(!clientHandler.clientUsername.equals(clientUsername)) {//Qu'on envoie le message au même client.
 					clientHandler.bufferedWritter.write(messageToSend);
 					clientHandler.bufferedWritter.newLine();
 					clientHandler.bufferedWritter.flush();

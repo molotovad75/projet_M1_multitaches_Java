@@ -19,6 +19,7 @@ public class Serveur  {
 				ClientHandler clientHandler=new ClientHandler(socket);
 				Thread thread =new Thread(clientHandler);
 				thread.start();
+				
 			}
 		}catch(IOException e) {
 			e.getMessage();
@@ -34,6 +35,8 @@ public class Serveur  {
 			e.printStackTrace();
 		}
 	}
+	
+	
 	
 	public static void main(String[] args) throws IOException{
 		ServerSocket serverSocket=new ServerSocket(1234);

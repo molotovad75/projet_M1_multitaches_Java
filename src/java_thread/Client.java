@@ -15,14 +15,19 @@ public class Client{
 	private BufferedWriter bufferedWriter;
 	private String username;
 	private static int id_client=0;
+	private static boolean envoi_DM_privee=false;
+	private static ClientHandler clienthandler_for_sending;
+	private static String message_to_send_DM,client_name_sending_DM;
+	private static Scanner scanner;
 	
+
 	public Client(Socket socket,String username, int id_client) {
 		try{
 			this.socket=socket;
 			this.bufferedWriter=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.username=username;
-			this.id_client=id_client;
+			Client.id_client=id_client;
 		}catch(IOException e) {
 			closeEverything(socket,bufferedReader,bufferedWriter);
 		}
@@ -34,43 +39,79 @@ public class Client{
 			bufferedWriter.newLine();
 			bufferedWriter.flush();
 			
-			Scanner scanner=new Scanner(System.in);
+			scanner=new Scanner(System.in);
 			
 			while(socket.isConnected()) {
 				String messageToSend=scanner.nextLine();//Ce que le client va écrire dans le chat
-
+				String client_name="";
+				boolean message_privee=false;
 				for(int t=0;t<messageToSend.length();t++){
-
-					if(messageToSend.charAt(t)=='@' && messageToSend.charAt(t-1)==' ' && t-1!=0 ){
-						for (int i=t+1;i<messageToSend.length();i++) {//boucle for n°2
-							if(messageToSend.charAt(i)==' '){ //Si le nom du client est séparé d'un espace
-								String client_name="";
-								for (int e=t+1;e<i;e++){
-									client_name=client_name+messageToSend.charAt(e); // On rempli le tableau
-								}
-								//Vérifier que le client existe bien dans le gestionnaire
-								for (ClientHandler clientHandler:ClientHandler.clientHandlers) {
-									if(clientHandler.getClientUsername().equals(client_name)){
-										bufferedWriter.write(username+ " a écrit à "+ client_name +" : " +messageToSend);
-										bufferedWriter.newLine();
-										bufferedWriter.flush();
-									}else{
-										bufferedWriter.write("Client introuvable ! ");
-										bufferedWriter.newLine();
-										bufferedWriter.flush();
-									}
+					
+					if(messageToSend.charAt(t)=='@' ){
+						message_privee=true;
+						/*for(int p=t+1;p<messageToSend.length();p++) {
+							if(messageToSend.charAt(p)!=' ' || messageToSend.charAt(p)!='@'){
+								client_name=client_name+messageToSend.charAt(p); // On rempli la chaine de caractères
+							}
+							else if(messageToSend.charAt(p)==' ') {
+								p=messageToSend.length()+3;//On sort de cette petite boucle for
+								
+							}
+						}*/
+						int p=t+1;
+						while(p<messageToSend.length()) {
+							if(messageToSend.charAt(p)!=' ' || messageToSend.charAt(p)!='@'){
+								client_name=client_name+messageToSend.charAt(p); // On rempli la chaine de caractères
+								if(client_name.charAt(client_name.length()-1)==' ') {
+									p=messageToSend.length()+1;
+									break;
 								}
 							}
-							i=messageToSend.length()-1; // On sort de la boucle For n°2.
+							else if(messageToSend.charAt(p)==' ') {
+								p=messageToSend.length()+1;
+								break;//On sort de cette petite boucle for
+							}
+							p++;
 						}
-					}
-					/*else{	//Il faut trouver un moyen de jerter ce else de la boucle for.
-						bufferedWriter.write(username+ " a écrit : " +messageToSend);
+						
+						System.out.println(client_name);
+						
+						/*bufferedWriter.write(username+ " a écrit : " +messageToSend);
 						bufferedWriter.newLine();
-						bufferedWriter.flush();
-					}*/
-				}
-			}//Fin boucle while
+						bufferedWriter.flush();*/
+						int i=0;
+						for (ClientHandler clientHandler:ClientHandler.clientHandlers) {
+							if(clientHandler.getClientUsername().equals(client_name)){
+								envoi_DM_privee=true;
+								clienthandler_for_sending=clientHandler;
+								message_to_send_DM=messageToSend;
+								client_name_sending_DM=client_name;
+								bufferedWriter.write(username+ " a écrit : " +messageToSend);
+								bufferedWriter.newLine();
+								bufferedWriter.flush();
+								//send_DM_client(clientHandler);
+								
+							}
+							else if(!clientHandler.getClientUsername().equals(client_name)){
+								i++;
+							}
+							else if(ClientHandler.clientHandlers.size()<=i){
+								bufferedWriter.write("Client introuvable ! ");
+								bufferedWriter.newLine();
+								bufferedWriter.flush();
+							}
+						}//Fin for each
+					}
+				}//Fin boucle for sur tout le message.
+					
+				
+				if(message_privee==false) {
+					envoi_DM_privee=false;
+					bufferedWriter.write(username+ " a écrit : " +messageToSend);
+					bufferedWriter.newLine();
+					bufferedWriter.flush();
+				}				
+			}//Fin boucle while socket ouverte
 			
 		}catch(IOException e) {
 			closeEverything(socket,bufferedReader,bufferedWriter);
@@ -117,18 +158,43 @@ public class Client{
 		}
 	}
 	
+	public static void send_DM_client(ClientHandler client_handler) {
+		try {
+			client_handler.run();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static boolean get_envoi_DM_privee() {
+		return envoi_DM_privee;
+	}
+	
+	public static ClientHandler get_clienthandler_for_sending() {
+		return clienthandler_for_sending;
+	}
+	
+	public static String get_message_to_send_DM() {
+		return message_to_send_DM;
+	}
+	
+	public static String get_client_name_sending_DM() {
+		return client_name_sending_DM;
+	}
+	
+	
 	public int getId_client() {
 		return id_client;
 	}
 
 	public void setId_client(int id_client) {
-		this.id_client = id_client;
+		Client.id_client = id_client;
 	}
 
 	public static void main(String[] args) throws IOException{
-		Scanner sc = new Scanner(System.in);
+		scanner = new Scanner(System.in);
 		System.out.println("Bienvenue sur l'application client-serveur officiel !\nVeuillez entrer votre pseudo !");
-		String username=sc.nextLine();
+		String username=scanner.nextLine();
 		Socket socket=new Socket("localhost",1234);
 		Client client=new Client(socket,username,id_client);
 		client.listenForMessage();
