@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 //Cette classe est mon gestionnaire de client.
-public class ClientHandler implements Runnable {
-	public static ArrayList<ClientHandler> clientHandlers=new ArrayList<ClientHandler>();
+public class GestionnaireClient implements Runnable {
+	public static ArrayList<GestionnaireClient> gestionnaire_client=new ArrayList<GestionnaireClient>();
 	private Socket socket;
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWritter;
@@ -21,7 +23,7 @@ public class ClientHandler implements Runnable {
 	private String clientUsername;
 	//private int id_client;
 
-	public ClientHandler(Socket socket) {
+	public GestionnaireClient(Socket socket) {
 		try {
 			this.socket=socket;
 
@@ -29,9 +31,11 @@ public class ClientHandler implements Runnable {
 			this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.clientUsername=bufferedReader.readLine();
 			//this.id_client= bufferedReader.readLine();
-
-			clientHandlers.add(this);
-			broadcastMessage("Serveur : "+clientUsername+ " est apparu dans la messagerie !");
+			Date date=new Date(); 
+			DateFormat dateformat=DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+			
+			gestionnaire_client.add(this);
+			broadcastMessage("Serveur : "+clientUsername+ " est apparu dans la messagerie le "+ dateformat.format(date)+" !");
 		
 		}catch(IOException e) {
 			closeEverything(socket, bufferedReader,bufferedWritter);
@@ -40,36 +44,48 @@ public class ClientHandler implements Runnable {
 	}
 	
 	@Override
-	public void run() {
-		String messageFromClient;
-		String nom_client_DM;
-		while(socket.isConnected()) {
-			try {
-				messageFromClient=bufferedReader.readLine();
-				nom_client_DM=bufferedReader.readLine();
-				
-				if(Client.get_envoi_DM_privee()==false) {
-					broadcastMessage(messageFromClient);
-				}else if(Client.get_envoi_DM_privee()==true) {
-					//broadcastMessage_client_DM(Client.get_message_to_send_DM(),Client.get_client_name_sending_DM());
-					broadcastMessage_client_DM(messageFromClient,nom_client_DM);
-				}
+	public void run(){
+        String messageFromClient;
 
-				
-			}catch(IOException e) {
-				closeEverything(socket,bufferedReader,bufferedWritter);
-				break;
-				
-			}
-		}
-		
-	}
+        while (socket.isConnected()){
+            try{
+                messageFromClient = bufferedReader.readLine();
+                boolean privateMessage = false;
+
+                if( messageFromClient.contains("@")){
+                    String username;
+
+                    for (GestionnaireClient clientHandler : gestionnaire_client){
+
+                        username = "@" + clientHandler.clientUsername + ":";
+
+                        try{
+                            if(messageFromClient.contains(username)){
+                                clientHandler.bufferedWritter.write(messageFromClient);
+                                clientHandler.bufferedWritter.newLine();
+                                clientHandler.bufferedWritter.flush();
+                                privateMessage = true;
+                            }
+                        } catch (IOException e){
+                            closeEverything(socket, bufferedReader, bufferedWritter);
+                        }
+                    }
+                }
+                if (!privateMessage){
+                    broadcastMessage(messageFromClient);
+                }
+            }catch (IOException e){
+                closeEverything(socket, bufferedReader, bufferedWritter);
+                break;
+            }
+        }
+    }
 	
 	
 	public void broadcastMessage(String messageToSend) {
-		for(ClientHandler clientHandler:clientHandlers) {
+		for(GestionnaireClient clientHandler:gestionnaire_client) {
 			try {
-				if(!clientHandler.clientUsername.equals(clientUsername)) {//Qu'on envoie le message au même client.
+				if(!clientHandler.clientUsername.equals(clientUsername)) {
 					clientHandler.bufferedWritter.write(messageToSend);
 					clientHandler.bufferedWritter.newLine();
 					clientHandler.bufferedWritter.flush();
@@ -81,7 +97,7 @@ public class ClientHandler implements Runnable {
 	}
 	
 	public void broadcastMessage_client_DM(String messageTosend,String username) {
-		for(ClientHandler clientHandler:clientHandlers) {
+		for(GestionnaireClient clientHandler:gestionnaire_client) {
 			if(clientHandler.clientUsername.equals(username) && !clientHandler.clientUsername.equals(clientUsername)) {
 				try{
 					clientHandler.bufferedWritter.write(messageTosend);
@@ -97,7 +113,7 @@ public class ClientHandler implements Runnable {
 	
 	
 	public void removeClientHandler() {
-		clientHandlers.remove(this);
+		gestionnaire_client.remove(this);
 		broadcastMessage("Serveur : "+ clientUsername+" a quitté la messagerie!");
 		
 	}
